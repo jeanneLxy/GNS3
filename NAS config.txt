@@ -1,0 +1,31 @@
+#Steps of configuration of MPLS and VPN4 in GNS3
+https://www.rogerperkin.co.uk/ccie/mpls/cisco-mpls-tutorial/
+
+步骤 1 – MPLS 核心和 OSPF 的 IP 寻址
+  首先将 3 个路由器放入拓扑 R1、R2、R3 中，按如下所示放置它们。我们将对路由器进行寻址并配置 ospf，以确保 R1 和 R3 之间的环回到环回连接
+  您现在应该在 R1、R2、R3 之间拥有完整的 ip 连接来验证这一点，我们需要看看我们是否可以在 R1 和 R3 的环回之间 ping 一下
+    R1#ping 3.3.3.3 source lo0
+
+步骤 2 – 在 MPLS 核心中的所有接口上配置 LDP
+  为了运行MPLS，您需要启用它，有两种方法可以做到这一点。
+    1.在每个接口上输入 mpls ip 命令
+    2.在 ospf 进程下使用 mpls ldp 自动配置命令
+  您应该会看到日志消息出现，显示 LDP 邻居已启动。
+  要验证 mpls 接口，命令非常简单 – sh mpls 接口 这是在 R2 上完成的，您可以看到两个接口都在运行 mpls 并使用 LDP  
+    R2#sh mpls interface
+
+第 3 步 – R1 和 R3 之间的 MPLS BGP 配置
+  我们需要在 R1 和 R3 之间建立多协议 BGP 会话，这是通过配置 vpnv4 地址系列来完成的
+  要验证 R1 和 R3 之间的 BGP 会话，请发出命令 sh bgp vpnv4 单播所有摘要
+    R1#sh bgp vpnv4 unicast all summary
+ 
+步骤 4 – 再添加两个路由器，创建 VRF
+  路由器 4 将使用进程号 2 将 OSPF 对等到 R1 上配置的 VRF。它将使用本地站点寻址 192.168.1.0/24。  
+ 
+ 
+步骤 5 
+  跨 MPLS 核心实现完全连接的最后一步是将 R1 和 R3 上的 OSPF 中的路由重新分发到 MP-BGP 中，将 MP-BGP 重新分发到 OSPF，这就是我们现在要做的。
+
+  我们需要将 OSPF 路由从 R4 重新分发到 R1 上的 VRF 中的 BGP，将 OSPF 路由从 R6 重新分发到 R3 上的 VRF 中的 MP-BGP，然后将 R1 和 R3 中 MP-BGP 中的路由重新分发回 OSPF
+
+
